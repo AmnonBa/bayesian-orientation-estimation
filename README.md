@@ -7,7 +7,7 @@ SO(3) ORIENTATION ESTIMATION & ITERATIVE ALIGNMENT — MATLAB TOOLKIT
 ══════════════════════════════════════════════════════════════════════════════
 
 Demos and utilities for MAP/MMSE orientation estimation on SO(3),
-supporting both RANDOM (Haar) and QUADRATURE grids. Includes iterative
+supporting both RANDOM (Haar or isotropic-Gaussian) and QUADRATURE grids. Includes iterative
 alignment and clean 3D visualization presets.
 
 ──────────────────────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ compare_so3_MAP_vs_MMSE
 • Saves plot to results/ if configured
 
 ──────────────────────────────────────────────────────────────────────────────
-▌ KEY PARAMETERS (CHEAT SHEET)
+▌ KEY PARAMETERS
 ──────────────────────────────────────────────────────────────────────────────
 General (both demos)
 • cfg.d : volume side length after resize (e.g., 32)
@@ -78,7 +78,7 @@ General (both demos)
 
 Iterative demo (compare_iterative_MAP_MMSE_3D.m)
 • cfg.N : number of observations (e.g., 3000)
-• cfg.sigma : noise std (start modest; e.g., 4e-5 or 0.4 for stress)
+• cfg.sigma : noise std 
 • cfg.max_iters : outer iterations
 • cfg.tol : stopping tolerance
 • cfg.use_quadrature : true → QUAD nodes; false → RANDOM nodes
@@ -111,7 +111,7 @@ Build template bank {Rℓ} on SO(3) (RANDOM or QUADRATURE).
 
 For each observation yᵢ, choose ℓ* = argmax_ℓ <yᵢ, Tℓ>.
 
-Back-rotate yᵢ by Rℓ*⁻¹ and average over i.
+Back-rotate yᵢ by Rℓ^{-1} and average over i.
 
 MMSE (soft assignment):
 
@@ -127,7 +127,7 @@ Quadrature prior reweighting (iso-Gaussian about R₀):
 • wℓ ← wℓ · exp(−θ(Rℓ,R₀)² / (2σ²)), then renormalize Σℓ wℓ = 1.
 
 ──────────────────────────────────────────────────────────────────────────────
-▌ APIs YOU’LL CALL
+▌ APIs
 ──────────────────────────────────────────────────────────────────────────────
 Random nodes:
 [axis, angle, R, w] = generateSO3randomRotations(N, prior_cfg)
@@ -144,40 +144,6 @@ Random alignment search:
 [axang, vol2_best, idx, score] = findBest3Dalignment(vol1, vol2, opts)
 • opts.normalize = true → NCC; falls back to dot product if degenerate
 
-──────────────────────────────────────────────────────────────────────────────
-▌ VISUALIZATION (NEW VIEWER API)
-──────────────────────────────────────────────────────────────────────────────
-• Background color: set on viewer3d, not on volshow
-• Use RenderingStyle with volshow
-
-Example (from the demo’s 2×2 dashboard):
-vwr = viewer3d('Parent', panel, 'BackgroundColor',[0 0 0]);
-volshow(data_uint8, 'Parent', vwr, ...
-'Colormap', gray(256), ...
-'Alphamap', linspace(0,1,256).^0.8, ...
-'RenderingStyle','VolumeRendering');
-
-Volumes are auto-scaled to uint8 with robust percentile clipping (2–98%).
-
-──────────────────────────────────────────────────────────────────────────────
-▌ TROUBLESHOOTING
-──────────────────────────────────────────────────────────────────────────────
-• “BackgroundColor is not supported on the Volume object.”
-→ Set the background on viewer3d, not on volshow.
-
-• “Renderer property is no longer supported.”
-→ Use 'RenderingStyle' on volshow; do not set obsolete 'Renderer'.
-
-• get_SO3_rule missing or no rule files
-→ Ensure quadrature/ is on MATLAB path; put rule files in sphere_rules/.
-
-• Blank/low-contrast volumes
-→ Check normalization; verify robust scaling; try a larger cfg.d and
-a gentler opacity map (e.g., linspace(0,1,256).^0.6).
-
-• Slow/huge memory usage
-→ Reduce cfg.N, cfg.L (or quadrature density), cfg.max_iters; start with
-higher σ to test the pipeline before scaling up.
 
 ──────────────────────────────────────────────────────────────────────────────
 ▌ CITATION
